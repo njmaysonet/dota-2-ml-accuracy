@@ -68,3 +68,79 @@ print('Test Accuracy: %.3f' % accuracy_score(y_test, y_pred))
 print('CM:', confusion_matrix(y_test, y_pred))
 print('Report:', classification_report(y_test, y_pred))
 print('Cross Validation', cross_val_score(pipe_lr, X, y, cv=5))
+
+# PyTorch Lightning Neural Network
+import torch
+from torch import nn
+import torch.nn.functional as F
+import torchvision.transforms as transforms
+import pytorch_lightning as pl
+from torch.utils.data import DataLoader, Dataset
+
+class SoftmaxRegressionPL(pl.LightningModule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.network = nn.Sequential(nn.Linear(222,2), nn.Softmax(dim=1))
+        self.accuracy = pl.metrics.Accuracy()
+    
+    def forward(self, x):
+        return self.network(x.view(x.size(0),-1))
+
+    def training_step (self,batch,batch_nb):
+        x, y = batch
+        y_hat = self(x)
+        loss = F.nll_loss(y_hat, y)
+        self.log('train_loss', loss, logger=True)
+        self.log('train_acc_step', self.accuracy(y_hat, y))
+        return loss
+    
+    def training_epoch_end(self, outputs):
+        self.log('train_acc_epoch', self.accuracy.compute(), logger=True)
+    
+    def validation_step(self,batch,batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        val_loss = F.nll_loss(y_hat,y)
+        self.log('val_loss',val_loss)
+        return val_loss
+    
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack([x for x in outputs]).mean()
+        self.log('val_loss', avg_loss, logger=True)
+        return avg_loss
+    
+    def test_step(self, batch, batch_nb):
+        # OPTIONAL
+        x, y = batch
+        y_hat = self(x)
+        test_loss = F.nll_loss(y_hat, y)
+        return test_loss
+
+    def test_epoch_end(self, outputs):
+        # OPTIONAL
+        avg_loss = torch.stack([x for x in outputs]).mean()
+        self.log('test_loss', avg_loss, logger=True)
+        return avg_loss
+
+    def configure_optimizers(self):
+        # REQUIRED
+        # can return multiple optimizers and learning_rate schedulers
+        # (LBFGS it is automatically supported, no need for closure function)
+        return torch.optim.Adam(self.parameters(), lr=0.02)
+
+    def train_dataloader(self):
+        # REQUIRED
+        return DataLoader(Dota2Dataset(torch.Tensor(X_train.values), torch.LongTensor(y_train.values)), batch_size=32)
+
+    def val_dataloader(self):
+        # OPTIONAL
+        return DataLoader(Dota2Dataset(torch.Tensor(X_test.values), torch.LongTensor(y_test.values)), batch_size=32)
+
+    def test_dataloader(self):
+        # OPTIONAL
+        return DataLoader(Dota2Dataset(torch.Tensor(X_test.values), torch.LongTensor(y_test.values)), batch_size=32)
+
+dota2model = SoftmaxRegressionPL()
+trainer = pl.Trainer(max_epochs=10)
+trainer.fit(dota2model)
+trainer.test(dota2model)
