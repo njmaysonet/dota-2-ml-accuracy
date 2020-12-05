@@ -77,50 +77,70 @@ import torchvision.transforms as transforms
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader, Dataset
 
-class SoftmaxRegressionPL(pl.LightningModule):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.network = nn.Sequential(nn.Linear(222,2), nn.Softmax(dim=1))
+class LinearPL(pl.LightningModule):
+    def __init__(self):
+        super(LinearPL, self).__init__()
+        self.layer1 = nn.Linear(222,111)
+        self.layer2 = nn.Linear(111,111)
+        self.out = nn.Linear(111,1)
+        self.relu = nn.ReLU()
         self.accuracy = pl.metrics.Accuracy()
+        self.criterion = nn.BCELoss()
+        self.batch_size = 222
+
+        nn.init.xavier_uniform_(self.layer1.weight)
+        nn.init.zeros_(self.layer1.bias)
+        nn.init.xavier_uniform_(self.layer2.weight)
+        nn.init.zeros_(self.layer2.bias)
+        nn.init.xavier_uniform_(self.out.weight)
+        nn.init.zeros_(self.out.bias)
+    
+    def get_weights(self):
+        return self.weight
     
     def forward(self, x):
-        return self.network(x.view(x.size(0),-1))
+        x = torch.tanh(self.layer1(x))
+        x = torch.tanh(self.layer2(x))
+        x = torch.sigmoid(self.out(x))
+        return x
 
     def training_step (self,batch,batch_nb):
         x, y = batch
         y_hat = self(x)
-        loss = F.nll_loss(y_hat, y)
+        loss = self.criterion(y_hat, y.unsqueeze(1))
         self.log('train_loss', loss, logger=True)
-        self.log('train_acc_step', self.accuracy(y_hat, y))
+        self.log('train_step_acc', self.accuracy(y_hat, y))
         return loss
     
     def training_epoch_end(self, outputs):
         self.log('train_acc_epoch', self.accuracy.compute(), logger=True)
-    
-    def validation_step(self,batch,batch_idx):
+
+    def validation_step(self, batch, batch_nb):
+        # OPTIONAL
         x, y = batch
         y_hat = self(x)
-        val_loss = F.nll_loss(y_hat,y)
-        self.log('val_loss',val_loss)
+        val_loss= self.criterion(y_hat, y.unsqueeze(1))
+        self.log('val_loss', val_loss)
         return val_loss
-    
+
     def validation_epoch_end(self, outputs):
+        # OPTIONAL
         avg_loss = torch.stack([x for x in outputs]).mean()
         self.log('val_loss', avg_loss, logger=True)
-        return avg_loss
-    
+
     def test_step(self, batch, batch_nb):
         # OPTIONAL
         x, y = batch
         y_hat = self(x)
-        test_loss = F.nll_loss(y_hat, y)
+        test_loss = self.criterion(y_hat, y.unsqueeze(1))
+        self.log('test_loss', test_loss, logger=True)
         return test_loss
 
     def test_epoch_end(self, outputs):
         # OPTIONAL
         avg_loss = torch.stack([x for x in outputs]).mean()
         self.log('test_loss', avg_loss, logger=True)
-        return avg_loss
+        self.log('test_acc', self.accuracy.compute(), logger=True)
 
     def configure_optimizers(self):
         # REQUIRED
@@ -130,17 +150,21 @@ class SoftmaxRegressionPL(pl.LightningModule):
 
     def train_dataloader(self):
         # REQUIRED
-        return DataLoader(Dota2Dataset(torch.Tensor(X_train.values), torch.LongTensor(y_train.values)), batch_size=32)
+        return DataLoader(Dota2Dataset(torch.Tensor(X_train.values), torch.Tensor(y_train.values)), batch_size=self.batch_size)
 
     def val_dataloader(self):
         # OPTIONAL
-        return DataLoader(Dota2Dataset(torch.Tensor(X_test.values), torch.LongTensor(y_test.values)), batch_size=32)
+        return DataLoader(Dota2Dataset(torch.Tensor(X_train.values), torch.Tensor(y_train.values)), batch_size=self.batch_size)
 
     def test_dataloader(self):
         # OPTIONAL
-        return DataLoader(Dota2Dataset(torch.Tensor(X_test.values), torch.LongTensor(y_test.values)), batch_size=32)
+        return DataLoader(Dota2Dataset(torch.Tensor(X_test.values), torch.Tensor(y_test.values)), batch_size=self.batch_size)
 
-dota2model = SoftmaxRegressionPL()
+dota2model = LinearPL()
 trainer = pl.Trainer(max_epochs=10)
 trainer.fit(dota2model)
 trainer.test(dota2model)
+
+import pickle
+d2model_save = dota2model
+pickle.dump(d2model_save, open("d2-model-save.p","wb"))
