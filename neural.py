@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import pytorch_lightning as pl
 from torch.autograd import Variable
 from data_logreg import X, y
-from d2_acc_dataset import Dota2Dataset
+from d2-dataset import Dota2Dataset
 import tensorboard as tb
 
 #Data preprocessing for DataLoader, using a barebones custom Dataset class
