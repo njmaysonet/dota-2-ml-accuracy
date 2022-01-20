@@ -14,7 +14,15 @@ classifier as a control and then develped a 3-layer linear neural network to tra
 ## Results
 
 Our classifier resulted in an accuracy rate of 86.73% which is a marked improvement over experiments conducted
-with traditional algorithms. 
+with traditional algorithms.
+
+We used TensorBoard to visualize our accuracy over epochs:
+
+/images/acc.png
+
+And our loss:
+
+/images/loss.png
 
 ## Instructions to run on your own
 
