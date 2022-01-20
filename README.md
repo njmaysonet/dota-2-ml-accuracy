@@ -30,9 +30,11 @@ esports and game companies.
 
 ## Instructions to run on your own
 
-First you must download the dataset from https://www.kaggle.com/devinanzelmo/dota-2-matches
+Clone the repo `git clone https://github.com/njmaysonet/dota-2-ml-accuracy.git`
 
-You **only** need hero_names.csv, matches.csv, and players.csv
+You must download the dataset from https://www.kaggle.com/devinanzelmo/dota-2-matches
+
+You **only** need hero_names.csv, matches.csv, and players.csv, this will save you ~500 mb.
 
 Run data_logreg it will output the underlying dataframes, train the logistic regressor +
 show the regression stats, and then run neural.py to train the neural network
