@@ -24,7 +24,7 @@ And our loss:
 
 ![](/images/loss.png)
 
-As we only ran for 100 epochs we believe that an accuracy of ~90% could be achieved with the same network and most likely
+As we only ran for 100 epochs (we had no CUDA GPUs) we believe that an accuracy of ~90% could be achieved with the same network and most likely
 an even higher accuracy with further refinement of the neural network which demonstrates the value that deep learning offers
 esports and game companies.
 
