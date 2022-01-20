@@ -26,8 +26,3 @@ Run data_logreg it will output the underlying dataframes, train the logistic reg
 show the regression stats, and then run neural.py to train the neural network
 
 The data preprocessing does take a bit to run.
-
-LINK TO DATASET:
-https://www.kaggle.com/devinanzelmo/dota-2-matches
-
-You ONLY need hero_names.csv, matches.csv, and players.csv
