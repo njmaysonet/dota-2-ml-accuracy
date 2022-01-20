@@ -18,11 +18,11 @@ with traditional algorithms.
 
 We used TensorBoard to visualize our accuracy over epochs:
 
-assets/images/acc.png
+/assets/images/acc.png
 
 And our loss:
 
-assets/images/loss.png
+/assets/images/loss.png
 
 ## Instructions to run on your own
 
